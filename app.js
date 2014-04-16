@@ -5,11 +5,41 @@ var favicon = require('static-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var orm = require('orm');
 
+//router
 var routes = require('./routes');
 var users = require('./routes/user');
 
 var app = express();
+
+//mysql opts
+var opts = {
+database : "hairstyle",
+		   protocol : "mysql",
+		   host     : "127.0.0.1",
+		   port     : 3306,
+		   user     : "root",
+		   password : "letmein",
+		   query    : {
+				pool     : true,
+		  	    debug    : true
+		   }
+}
+
+app.use(orm.express(opts,{
+	define:function(db, models) {
+		models.user = db.define('USER',
+		{
+			username : String,
+			password : String,
+			nickname : String
+		},
+		{
+			id : 'id'
+		});
+}
+}));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -25,7 +55,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(app.router);
 
 app.get('/', routes.index);
-app.get('/users', users.list);
+app.get('/user/:uid', users.getUserById);
 
 /// catch 404 and forwarding to error handler
 app.use(function(req, res, next) {
